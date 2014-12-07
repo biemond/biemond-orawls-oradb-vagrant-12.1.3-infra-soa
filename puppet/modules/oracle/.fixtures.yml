@@ -1,0 +1,3 @@
+fixtures:
+  repositories:
+    easy_type: https://github.com/hajee/easy_type.git

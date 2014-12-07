@@ -1,0 +1,9 @@
+/modules/
+
+/.tmp/
+
+/.vagrant/
+
+pkg
+
+/spec/fixtures/

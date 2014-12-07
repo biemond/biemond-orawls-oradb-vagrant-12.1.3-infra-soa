@@ -1,0 +1,10 @@
+GIT
+  remote: git://github.com/hajee/easy_type.git
+  ref: master
+  sha: c721710d1780dae342e2c12c8c7b3a3760118a69
+  specs:
+    easy_type (0.5.1)
+
+DEPENDENCIES
+  easy_type (>= 0)
+

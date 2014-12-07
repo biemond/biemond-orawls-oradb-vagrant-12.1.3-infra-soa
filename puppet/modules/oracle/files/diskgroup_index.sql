@@ -1,0 +1,9 @@
+select group_number
+    , name
+    , allocation_unit_size
+    , state
+    , type
+    , compatibility
+    , database_compatibility
+    , allocation_unit_size
+from v$asm_diskgroup

@@ -1,0 +1,56 @@
+---
+
+hosts:
+  'localhost':
+    ip:                "127.0.0.1"
+    host_aliases:      'localhost.localdomain,localhost4,localhost4.localdomain4'
+  'soa.example.com':
+    ip:                "10.10.10.21"
+    host_aliases:      'soa'
+
+
+# global WebLogic vars
+wls_oracle_base_home_dir: &wls_oracle_base_home_dir "/oracle"
+wls_weblogic_user:        &wls_weblogic_user        "weblogic"
+wls_weblogic_home_dir:    &wls_weblogic_home_dir    "/oracle/product/12.1/middleware/wlserver"
+wls_middleware_home_dir:  &wls_middleware_home_dir  "/oracle/product/12.1/middleware"
+wls_version:              &wls_version              1213
+
+# global OS vars
+wls_os_user:              &wls_os_user              "oracle"
+wls_os_group:             &wls_os_group             "dba"
+wls_download_dir:         &wls_download_dir         "/var/tmp/install"
+wls_source:               &wls_source               "/software"
+wls_jdk_home_dir:         &wls_jdk_home_dir         "/usr/java/latest"
+wls_log_dir:              &wls_log_dir              "/var/log/weblogic"
+
+wls_jsse_enabled:         true
+
+#WebLogic installation variables
+orawls::weblogic::version:              *wls_version
+orawls::weblogic::filename:             "fmw_12.1.3.0.0_infrastructure.jar"
+orawls::weblogic::fmw_infra:            true
+
+orawls::weblogic::middleware_home_dir:  *wls_middleware_home_dir
+orawls::weblogic::log_output:           true
+
+# hiera default anchors
+orawls::weblogic::jdk_home_dir:         *wls_jdk_home_dir
+orawls::weblogic::oracle_base_home_dir: *wls_oracle_base_home_dir
+orawls::weblogic::os_user:              *wls_os_user
+orawls::weblogic::os_group:             *wls_os_group
+orawls::weblogic::download_dir:         *wls_download_dir
+orawls::weblogic::source:               *wls_source
+orawls::weblogic::remote_file:          false
+
+
+# handy WebLogic scripts in /opt/scripts/wls
+orautils::osOracleHomeParam:      *wls_oracle_base_home_dir
+orautils::oraInventoryParam:      "/oracle/oraInventory"
+orautils::osLogFolderParam:       *wls_log_dir
+orautils::osDownloadFolderParam:  *wls_download_dir
+orautils::osMdwHomeParam:         *wls_middleware_home_dir
+orautils::osWlHomeParam:          *wls_weblogic_home_dir
+orautils::oraUserParam:           *wls_os_user
+orautils::jsseEnabledParam:       true
+

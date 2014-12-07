@@ -1,0 +1,8 @@
+create diskgroup <%= groupname -%>
+  <%= redundancy_type -%> redundancy
+  <% failgroups.each do | key, group| -%>
+    failgroup <%= key -%> disk '<%= group['path'] -%>' name <%= group['diskname'] -%>
+  <% end %>
+  ATTRIBUTE
+    'compatible.asm' = '<%= compat_asm -%>',
+    'compatible.rdbms' = '<%= compat_rdbms -%>';

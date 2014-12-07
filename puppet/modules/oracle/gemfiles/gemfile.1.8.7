@@ -1,0 +1,19 @@
+source 'https://rubygems.org'
+
+group :development, :test do
+  gem 'rake',    :require => false
+end
+
+group :test do
+  gem 'puppet-lint'
+  gem "rspec-puppet" , :git => 'https://github.com/doc75/rspec-puppet.git', :branch => 'update-to-rspec3'
+  gem 'rspec-system-puppet'
+  gem 'puppetlabs_spec_helper'
+  gem 'puppet-syntax'
+end
+
+if puppetversion = ENV['PUPPET_GEM_VERSION']
+  gem 'puppet', puppetversion, :require => false
+else
+  gem 'puppet', :require => false
+end

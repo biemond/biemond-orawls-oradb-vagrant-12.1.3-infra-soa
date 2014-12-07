@@ -1,0 +1,270 @@
+---
+
+# global oracle vars
+oracle_base_dir:          '/oracle'
+oracle_home_dir:          '/oracle/product/12.1/database'
+
+# global OS vars
+oracle_os_user:           "oracle"
+oracle_os_group:          "dba"
+oracle_download_dir:      "/var/tmp/install"
+oracle_source:            "/software"
+
+oracle_database_name:         'soarepos'
+oracle_database_domain_name:  'example.com'
+oracle_database_service_name: 'soarepos.example.com'
+oracle_database_host:         'soa.example.com:1521'
+
+oracle_database_sys_password:    'Welcome01'
+oracle_database_system_password: 'Welcome01'
+
+
+
+wls_os_user:              &wls_os_user              "oracle"
+wls_weblogic_user:        &wls_weblogic_user        "weblogic"
+
+wls_weblogic_home_dir:    &wls_weblogic_home_dir    "/oracle/product/12.1/middleware/wlserver"
+wls_middleware_home_dir:  &wls_middleware_home_dir  "/oracle/product/12.1/middleware"
+wls_version:              &wls_version              1213
+wls_domains_dir:          &wls_domains_dir          '/oracle/wlsdomains/domains'
+wls_apps_dir:             &wls_apps_dir             '/oracle/wlsdomains/applications'
+
+orawls::weblogic::log_output:           true
+orawls::weblogic::wls_domains_dir:      *wls_domains_dir
+orawls::weblogic::wls_apps_dir:         *wls_apps_dir
+orawls::weblogic::version:              *wls_version
+orawls::weblogic::filename:             "fmw_12.1.3.0.0_infrastructure.jar"
+orawls::weblogic::middleware_home_dir:  *wls_middleware_home_dir
+orawls::weblogic::fmw_infra:            true
+
+orautils::osMdwHomeParam:         *wls_middleware_home_dir
+orautils::osWlHomeParam:          *wls_weblogic_home_dir
+
+orautils::osDomainTypeParam:      "admin"
+orautils::osDomainParam:          "soa_domain"
+orautils::osDomainPathParam:      "/oracle/wlsdomains/domains/soa_domain"
+orautils::nodeMgrPathParam:       "/oracle/wlsdomains/domains/soa_domain/bin"
+
+orautils::nodeMgrPortParam:       5556
+orautils::nodeMgrAddressParam:    '10.10.10.21'
+orautils::wlsUserParam:           "weblogic"
+orautils::wlsPasswordParam:       "weblogic1"
+orautils::wlsAdminServerParam:    "AdminServer"
+
+logoutput:                     &logoutput                     true
+
+# FMW installation on top of WebLogic 12.1.3
+fmw_installations:
+  'soa1213':
+    version:                 *wls_version
+    fmw_product:             "soa"
+    fmw_file1:               "fmw_12.1.3.0.0_soa_Disk1_1of1.zip"
+    bpm:                     true
+    log_output:              true
+    remote_file:             false
+  'osb1213':
+    version:                 *wls_version
+    fmw_product:             "osb"
+    fmw_file1:               "fmw_12.1.3.0.0_osb_Disk1_1of1.zip"
+    log_output:              true
+    remote_file:             false
+
+# when you have just one domain on a server
+domain_name:                &domain_name                "soa_domain"
+domain_adminserver:         &domain_adminserver         "AdminServer"
+domain_adminserver_address: &domain_adminserver_address "10.10.10.21"
+domain_adminserver_port:    &domain_adminserver_port    7001
+domain_nodemanager_port:    &domain_nodemanager_port    5556
+domain_wls_password:        &domain_wls_password        "weblogic1"
+domain_user_config_file:    "/home/oracle/oracle-soa_domain-WebLogicConfig.properties"
+domain_user_key_file:       "/home/oracle/oracle-soa_domain-WebLogicKey.properties"
+
+
+
+# create a soa domain
+domain_instances:
+  'soa_domain':
+    version:                  *wls_version
+    domain_template:          "osb_soa_bpm"
+    bam_enabled:              true
+    b2b_enabled:              true
+    ess_enabled:              true
+    development_mode:         true
+    log_output:               *logoutput
+    nodemanager_address:      "10.10.10.21"
+    repository_database_url:  "jdbc:oracle:thin:@soa.example.com:1521/soarepos.example.com"
+    repository_prefix:        "DEV"
+    repository_password:      "Welcome01"
+    repository_sys_password:  "Welcome01"
+    rcu_database_url:         "soa.example.com:1521:soarepos.example.com"
+
+wls_setting_instances:
+  'default':
+    user:               *wls_os_user
+    weblogic_home_dir:  *wls_weblogic_home_dir
+    connect_url:        "t3://10.10.10.21:7001"
+    weblogic_user:      *wls_weblogic_user
+    weblogic_password:  *domain_wls_password
+    post_classpath:     '/oracle/product/12.1/middleware/oracle_common/modules/internal/features/jrf_wlsFmw_oracle.jrf.wlst_12.1.3.jar'
+    require:            Orawls::Domain[soa_domain]
+
+# create and startup the nodemanager
+nodemanager_instances:
+  'nodemanager':
+     nodemanager_address:  "10.10.10.21"
+     log_output:           *logoutput
+
+# startup adminserver for extra configuration
+control_instances:
+  'startWLSAdminServer':
+     domain_name:          "soa_domain"
+     server_type:          'admin'
+     target:               'Server'
+     server:               'AdminServer'
+     action:               'start'
+     log_output:           *logoutput
+
+# create password file for WLST utility
+userconfig_instances:
+  'soa_domain':
+     log_output:           *logoutput
+     user_config_dir:      '/home/oracle'
+
+# fmw_cluster_instances:
+#   'soaCluster':
+#     domain_name:          "soa_domain"
+#     soa_cluster_name:     "SoaCluster"
+#     bam_cluster_name:     "BamCluster"
+#     osb_cluster_name:     "OsbCluster"
+#     log_output:           *logoutput
+#     bpm_enabled:          true
+#     bam_enabled:          true
+#     soa_enabled:          true
+#     osb_enabled:          true
+#     b2b_enabled:          true
+#     ess_enabled:          true
+#     repository_prefix:    "DEV"
+
+# fmwlogdir_instances:
+#   'AdminServer':
+#      log_output:      true
+#      server:          'AdminServer'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'SoaServer1':
+#      log_output:      true
+#      server:          'SoaServer1'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'BamServer1':
+#      log_output:      true
+#      server:          'BamServer1'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'OsbServer1':
+#      log_output:      true
+#      server:          'OsbServer1'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+
+# machines_instances:
+#   'Node1':
+#     ensure:         'present'
+#     listenaddress:  '10.10.10.21'
+#     listenport:     '5556'
+#     machinetype:    'UnixMachine'
+#     nmtype:         'SSL'
+
+# server_instances:
+#       'SoaServer1':
+#          ensure:                                'present'
+#          arguments:
+#            - '-XX:PermSize=256m'
+#            - '-XX:MaxPermSize=752m'
+#            - '-Xms1024m'
+#            - '-Xmx1532m'
+#            - '-Dweblogic.Stdout=/var/log/weblogic/SoaServer1.out'
+#            - '-Dweblogic.Stderr=/var/log/weblogic/SoaServer1_err.out'
+#          listenaddress:                         '10.10.10.21'
+#          listenport:                            '8001'
+#          logfilename:                           '/var/log/weblogic/SoaServer1.log'
+#          log_file_min_size:                     '5000'
+#          log_filecount:                         '10'
+#          log_number_of_files_limited:           '1'
+#          log_rotate_logon_startup:              '1'
+#          log_rotationtype:                      'bySize'
+#          machine:                               'Node1'
+#          sslenabled:                            '0'
+#          ssllistenport:                         '8002'
+#          sslhostnameverificationignored:        '1'
+#          jsseenabled:                           '1'
+#          require:                               Wls_machine[Node1]
+#       'BamServer1':
+#          ensure:                                'present'
+#          arguments:
+#            - '-XX:PermSize=256m'
+#            - '-XX:MaxPermSize=752m'
+#            - '-Xms752m'
+#            - '-Xmx1524m'
+#            - '-Dweblogic.Stdout=/var/log/weblogic/BamServer1.out'
+#            - '-Dweblogic.Stderr=/var/log/weblogic/BamServer1_err.out'
+#          listenaddress:                         '10.10.10.21'
+#          listenport:                            '9001'
+#          logfilename:                           '/var/log/weblogic/BamServer1.log'
+#          log_file_min_size:                     '5000'
+#          log_filecount:                         '10'
+#          log_number_of_files_limited:           '1'
+#          log_rotate_logon_startup:              '1'
+#          log_rotationtype:                      'bySize'
+#          machine:                               'Node1'
+#          sslenabled:                            '0'
+#          ssllistenport:                         '9002'
+#          sslhostnameverificationignored:        '1'
+#          jsseenabled:                           '1'
+#          require:                               Wls_machine[Node1]
+#       'OsbServer1':
+#          ensure:                                'present'
+#          arguments:
+#            - '-XX:PermSize=256m'
+#            - '-XX:MaxPermSize=512m'
+#            - '-Xms752m'
+#            - '-Xmx1024m'
+#            - '-Dweblogic.Stdout=/var/log/weblogic/OsbServer1.out'
+#            - '-Dweblogic.Stderr=/var/log/weblogic/OsbServer1_err.out'
+#          listenaddress:                         '10.10.10.21'
+#          listenport:                            '8011'
+#          logfilename:                           '/var/log/weblogic/OsbServer1.log'
+#          log_file_min_size:                     '5000'
+#          log_filecount:                         '10'
+#          log_number_of_files_limited:           '1'
+#          log_rotate_logon_startup:              '1'
+#          log_rotationtype:                      'bySize'
+#          machine:                               'Node1'
+#          sslenabled:                            '0'
+#          ssllistenport:                         '8012'
+#          sslhostnameverificationignored:        '1'
+#          jsseenabled:                           '1'
+#          require:                               Wls_machine[Node1]
+
+# # create cluster and assign the managed servers
+# cluster_instances:
+#       'SoaCluster':
+#         ensure:         'present'
+#         messagingmode:  'unicast'
+#         migrationbasis: 'consensus'
+#         servers:
+#           - 'SoaServer1'
+#         require:
+#           - Wls_server[SoaServer1]
+#       'BamCluster':
+#         ensure:         'present'
+#         messagingmode:  'unicast'
+#         migrationbasis: 'consensus'
+#         servers:
+#           - 'BamServer1'
+#         require:
+#           - Wls_server[BamServer1]
+#       'OsbCluster':
+#         ensure:         'present'
+#         messagingmode:  'unicast'
+#         migrationbasis: 'consensus'
+#         servers:
+#           - 'OsbServer1'
+#         require:
+#           - Wls_server[OsbServer1]
