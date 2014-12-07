@@ -8,8 +8,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "soa" , primary: true do |soa|
 
-    soa.vm.box = "centos-6.5-x86_64"
-    soa.vm.box_url = "https://dl.dropboxusercontent.com/s/np39xdpw05wfmv4/centos-6.5-x86_64.box"
+    soa.vm.box = "OEL6_6"
+    soa.vm.box_url = "https://dl.dropboxusercontent.com/s/6h3sdpab3sd50u8/OEL6_6.box"
 
     soa.vm.hostname = "soa.example.com"
     soa.vm.synced_folder ".", "/vagrant", :mount_options => ["dmode=777","fmode=777"]
@@ -18,7 +18,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     soa.vm.network :private_network, ip: "10.10.10.21"
 
     soa.vm.provider :virtualbox do |vb|
-      vb.customize ["modifyvm", :id, "--memory", "4548"]
+      vb.customize ["modifyvm", :id, "--memory", "6096"]
       vb.customize ["modifyvm", :id, "--name"  , "soa"]
       vb.customize ["modifyvm", :id, "--cpus"  , 2]
     end
