@@ -43,7 +43,7 @@ module EasyType
       entries(type).last
     end
 
-    def add(line, options = {}, &block)
+    def add(line=nil, options = {}, &block)
       if block
         add_to_queue(:main, line, options, &block)
       else

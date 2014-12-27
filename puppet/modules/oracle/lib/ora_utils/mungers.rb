@@ -14,8 +14,8 @@ module OraUtils
       # The sid remains as it is.
       #
       def unsafe_munge(original_value)
-       sid, _, value = original_value.partition('/') 
-        "#{sid}/#{value.upcase}"
+       value, _, sid = original_value.partition('@') 
+        "#{value.upcase}@#{sid}"
       end
     end
   end

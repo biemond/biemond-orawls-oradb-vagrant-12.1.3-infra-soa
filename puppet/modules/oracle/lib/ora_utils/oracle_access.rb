@@ -53,7 +53,7 @@ module OraUtils
     #
     def sql( command, parameters = {})
       sid = parameters.fetch(:sid) { fail "SID must be present"}
-      Puppet.info "Executing: #{command} on database #{sid}"
+      Puppet.debug "Executing: #{command} on database #{sid}"
       csv_string = execute_sql(command, parameters)
       add_sid_to(convert_csv_data_to_hash(csv_string, [], :converters=> lambda {|f| f ? f.strip : nil}),sid)
     end
@@ -66,6 +66,8 @@ module OraUtils
     def execute_sql(command, parameters)
       os_user = parameters.fetch(:os_user) { ENV['ORA_OS_USER'] || 'oracle'}
       db_sid = parameters.fetch(:sid) { raise ArgumentError, "No sid specified"}
+      oratab = OraUtils::OraTab.new
+      raise ArgumentError, "sid #{db_sid} doesn't exist on node" unless oratab.valid_sid?(db_sid) 
       username = parameters.fetch(:username) { 'sysdba'}
       password = parameters[:password] # null allowd
       daemon = OraDaemon.run(os_user, db_sid, username, password)

@@ -49,6 +49,7 @@ module Puppet
       # a header as the first line, you can pass nil for the header Array.
       #
       <% end %>
+      []
     end
 
     on_create do | command_builder |
@@ -151,4 +152,5 @@ module Puppet
     parameter :name
     # -- end of attributes -- Leave this comment if you want to use the scaffolder
     #
+  end
 end

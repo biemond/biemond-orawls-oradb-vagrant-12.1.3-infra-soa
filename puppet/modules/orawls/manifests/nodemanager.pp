@@ -3,11 +3,13 @@
 # install and configures the nodemanager
 #
 define orawls::nodemanager (
-  $version                               = hiera('wls_version'                   , 1111),  # 1036|1111|1211|1212
+  $version                               = hiera('wls_version'                   , 1111),  # 1036|1111|1211|1212|1213
   $middleware_home_dir                   = hiera('wls_middleware_home_dir'), # /opt/oracle/middleware11gR1
   $weblogic_home_dir                     = hiera('wls_weblogic_home_dir'),
   $nodemanager_port                      = hiera('domain_nodemanager_port'       , 5556),
   $nodemanager_address                   = undef,
+  $nodemanager_address                   = undef,
+  $nodemanager_secure_listener           = true,
   $jsse_enabled                          = hiera('wls_jsse_enabled'              , false),
   $custom_trust                          = hiera('wls_custom_trust'              , false),
   $trust_keystore_file                   = hiera('wls_trust_keystore_file'       , undef),
@@ -78,23 +80,37 @@ define orawls::nodemanager (
 
   case $::kernel {
     'Linux': {
-      $checkCommand   = "/bin/ps -ef | grep -v grep | /bin/grep 'weblogic.NodeManager'"
-      $nativeLib      = 'linux/x86_64'
-      $suCommand      = "su -l ${os_user}"
-      $java_statement = 'java'
+      if ( $version == 1212 or $version == 1213 ){
+        $checkCommand = "/bin/ps -ef | grep -v grep | /bin/grep 'weblogic.NodeManager' | /bin/grep ${domain_name}"
+      } else {
+        $checkCommand = '/bin/ps -ef | grep -v grep | /bin/grep \'weblogic.NodeManager\''
+      }
+      $nativeLib         = 'linux/x86_64'
+      $suCommand         = "su -l ${os_user}"
+      $java_statement    = 'java'
+      $netstat_statement = "/bin/netstat -lnt | /bin/grep ':${nodemanager_port}'"
     }
     'SunOS': {
       case $::kernelrelease {
         '5.11': {
-          $checkCommand   = "/bin/ps wwxa | /bin/grep -v grep | /bin/grep 'weblogic.NodeManager'"
+          if ( $version == 1212 or $version == 1213 ){
+            $checkCommand = "/bin/ps wwxa | /bin/grep -v grep | /bin/grep 'weblogic.NodeManager' | /bin/grep ${domain_name}"
+          } else {
+            $checkCommand = '/bin/ps wwxa | /bin/grep -v grep | /bin/grep \'weblogic.NodeManager\''
+          }
         }
         default: {
-          $checkCommand   = "/usr/ucb/ps wwxa | /bin/grep -v grep | /bin/grep 'weblogic.NodeManager'"
+          if ( $version == 1212 or $version == 1213 ){
+            $checkCommand = "/usr/ucb/ps wwxa | /bin/grep -v grep | /bin/grep 'weblogic.NodeManager' | /bin/grep ${domain_name}"
+          } else {
+            $checkCommand = '/usr/ucb/ps wwxa | /bin/grep -v grep | /bin/grep \'weblogic.NodeManager\''
+          }
         }
       }
-      $nativeLib      = 'solaris/x64'
-      $suCommand      = "su - ${os_user}"
-      $java_statement = 'java -d64'
+      $nativeLib         = 'solaris/x64'
+      $suCommand         = "su - ${os_user}"
+      $java_statement    = 'java -d64'
+      $netstat_statement = "/bin/netstat -an -P tcp | /bin/grep LISTEN | /bin/grep '.${nodemanager_port}'"
     }
     default: {
       fail("Unrecognized operating system ${::kernel}, please use it on a Linux or Solaris host")
@@ -146,12 +162,13 @@ define orawls::nodemanager (
     cwd         => $nodeMgrHome,
   }
 
-  exec { "sleep ${sleep} sec for wlst exec ${title}":
-      command     => "/bin/sleep ${sleep}",
-      subscribe   => Exec["startNodemanager ${title}"],
-      refreshonly => true,
-      path        => $exec_path,
-      user        => $os_user,
-      group       => $os_group,
+  # using fiddyspence/sleep module
+  sleep { "wake up ${title}":
+    bedtime       => $sleep,
+    wakeupfor     => $netstat_statement,
+    dozetime      => 2,
+    failontimeout => true,
+    subscribe     => Exec["startNodemanager ${title}"],
+    refreshonly   => true,
   }
 }

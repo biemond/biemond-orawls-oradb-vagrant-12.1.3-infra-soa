@@ -3,12 +3,12 @@ source 'https://rubygems.org'
 group :development, :test do
   gem 'rake',    :require => false
   gem 'rspec-its'
+  gem "puppet-blacksmith"
   platform :ruby_19, :ruby_20 do
     gem 'rubocop', :git => 'https://github.com/bbatsov/rubocop',  :require => false
     gem 'travis'
     gem 'travis-lint'
     gem 'vagrant-wrapper'
-    gem 'puppet-blacksmith'
     gem 'ruby_gntp'
   end
 end

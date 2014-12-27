@@ -1,6 +1,12 @@
 History
 ========
 
+27-11-2014  version 0.7.0
+--------------------------
+-Big API change. Change all type names to ora_..
+- Have the sid at with @ at the back instead with a slach at the front. eg. it used to be SID/HAJEE. Now it is HAJEE@SID
+
+
 27-11-2014  version 0.6.0
 --------------------------
 - init params now works with a different syntax for specifying the name. Check the readme for details

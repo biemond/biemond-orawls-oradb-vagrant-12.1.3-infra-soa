@@ -27,7 +27,7 @@ module EasyType
     # @return [String] interpreted ERB template
     #
     def template(name, context)
-      ERB.new(load_file(name).content).result(context)
+      ERB.new(load_file(name).content, nil, '-').result(context)
     end
 
     private

@@ -1,0 +1,14 @@
+{
+  "name": "fiddyspence-sleep",
+  "version": "1.1.2",
+  "author": "fiddyspence",
+  "summary": "Sleep Module",
+  "license": "ASL 2.0",
+  "source": "git://github.com/fiddyspence/puppet-sleep.git",
+  "project_page": "http://github.com/fiddyspence/puppet-sleep",
+  "issues_url": "https://github.com/fiddyspence/puppet-sleep/issues",
+  "description": "This is a module to provide a core type that does a sleep",
+  "dependencies": [
+  
+  ]
+}

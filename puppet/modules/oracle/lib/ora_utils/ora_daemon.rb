@@ -28,7 +28,7 @@ class OraDaemon < EasyType::Daemon
   end
 
   def execute_sql_command(command, output_file, timeout = DEFAULT_TIMEOUT)
-    Puppet.info "Executing sql-command #{command}"
+    Puppet.debug "Executing sql-command #{command}"
     connect_to_oracle
     execute_command template('puppet:///modules/oracle/execute.sql.erb', binding)
     execute_command "prompt ~~~~COMMAND SUCCESFULL~~~~"
@@ -43,7 +43,7 @@ class OraDaemon < EasyType::Daemon
 
 
     def connect_to_oracle
-      Puppet.info "Connecting to Oracle sid #{@sid} with user #{@oraUser}"
+      Puppet.debug "Connecting to Oracle sid #{@sid} with user #{@oraUser}"
       case @oraUser.downcase
       when 'sysdba', 'sysasm'
         execute_command "connect / as #{@oraUser}\;"

@@ -60,5 +60,6 @@ module Puppet
       /^((.*\/)?(.*):(.*)?)$/
     end
 
+
   end
 end

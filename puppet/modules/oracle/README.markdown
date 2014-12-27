@@ -55,14 +55,14 @@ puppet module install hajee/oracle
 
 The module contains the following types:
 
-`tablespace`, `oracle_user`, `role` and `listener`. Here are a couple of examples on how to use them.
+`ora_tablespace`, `ora_user`, `ora_role` and `ora_listener`. Here are a couple of examples on how to use them.
 
-###listener
+###ora_listener
 
 This is the only module that does it's work outside of the Oracle database. It makes sure the Oracle SQL*Net listener is running.
 
 ```puppet
-listener {'SID':
+ora_listener {'SID':
   ensure  => running,
   require => Exec['db_install_instance'],
 }
@@ -72,19 +72,19 @@ The name of the resource *MUST* be the sid for which you want to start the liste
 
 ###Specifying the SID
 
-All types have a name like `sid\resource`. The sid is optional. If you don't specify the sid, the type will use the first database instance from the `/etc/oratab`  file. We advise you to use a full name, e.g. an sid and a resource name. This makes the manifest much more resilient for changes in the environment.
+All types have a name like `resource@sid`. The sid is optional. If you don't specify the sid, the type will use the first database instance from the `/etc/oratab`  file. We advise you to use a full name, e.g. an sid and a resource name. This makes the manifest much more resilient for changes in the environment.
 
 
-###oracle_user
+###ora_user
 
 This type allows you to manage a user inside an Oracle Database. It recognises most of the options that [CREATE USER](http://docs.oracle.com/cd/B28359_01/server.111/b28286/statements_8003.htm#SQLRF01503) supports. Besides these options, you can also use this type to manage the grants and the quota's for this user.
 
 ```puppet
-oracle_user{sid/user_name:
+ora_user{user_name@sid:
   temporary_tablespace      => temp,
   default_tablespace        => 'my_app_ts,
   password                  => 'verysecret',
-  require                   => Tablespace['my_app_ts'],
+  require                   => Ora_tablespace['my_app_ts'],
   grants                    => ['SELECT ANY TABLE', 'CONNECT', 'CREATE TABLE', 'CREATE TRIGGER'],
   quotas                    => {
                                   "my_app_ts"  => 'unlimited'
@@ -93,12 +93,12 @@ oracle_user{sid/user_name:
 ```
 
 
-###tablespace
+###ora_tablespace
 
 This type allows you to manage a tablespace inside an Oracle Database. It recognises most of the options that [CREATE TABLESPACE](http://docs.oracle.com/cd/B28359_01/server.111/b28310/tspaces002.htm#ADMIN11359) supports.
 
 ```puppet
-tablespace {'sid/my_app_ts':
+ora_tablespace {'my_app_ts@sid':
   ensure                    => present,
   datafile                  => 'my_app_ts.dbf',
   size                      => 5G,
@@ -114,7 +114,7 @@ tablespace {'sid/my_app_ts':
 You can also create an undo tablespace:
 
 ```puppet
-tablespace {'sid/my_undots_1':
+ora_tablespace {'my_undots_1@sid':
   ensure                    => present,
   contents                  => 'undo',
 }
@@ -123,7 +123,7 @@ tablespace {'sid/my_undots_1':
 or a temporary taplespace:
 
 ```puppet
-tablespace {'sid/my_temp_ts':
+tablespace {'my_temp_ts@sid':
   ensure                    => present,
   datafile                  => 'my_temp_ts.dbf',
   content                   => 'temporary',
@@ -137,35 +137,35 @@ tablespace {'sid/my_temp_ts':
 }
 ```
 
-###role
+###ora_role
 
 This type allows you to create or delete a role inside an Oracle Database. It recognises a limit part of the options that [CREATE ROLE](http://docs.oracle.com/cd/B28359_01/server.111/b28286/statements_6012.htm#SQLRF01311) supports.
 
 
 ```puppet
-role {'sid/just_a_role':
+ora_role {'just_a_role@sid':
   ensure    => present,
 }
 ```
 
-###oracle_service
+###ora_service
 
 This type allows you to create or delete a service inside an Oracle Database.
 
 
 ```puppet
-oracle_service{'sid/my_app_service':
+ora_service{'my_app_service@sid':
   ensure  => present,
 }
 ```
 
-###init_param
+###ora_init_param
 
 this type allows you to manage your init.ora parameters. You can manage your `spfile` parameters and your `memory` parameters. First the easy variant where you want to change an spfile parameter on your current sid for your current sid.
 
 
 ```puppet
-init_param{'SPFILE/PARAMETER':
+ora_init_param{'SPFILE/PARAMETER':
   ensure  => present,
   value   => 'the_value'
 }
@@ -200,12 +200,12 @@ init_param{'MEMORY/PARAMETER:INSTANCE@SID':
 ```
 
 
-###asm_diskgroup
+###ora_asm_diskgroup
 
 This type allows you to manage your ASM diskgroups. Like the other Oracle types, you must specify the SID. But for this type it must be the ASM sid. Most of the times, this is `+ASM1`
 
 ```puppet
-asm_diskgroup {'+ASM1/REDO':
+ora_asm_diskgroup {'REDO@+ASM1':
   ensure          => 'present',
   redundancy_type => 'normal',
   compat_asm      => '11.2.0.0.0',
@@ -221,12 +221,12 @@ asm_diskgroup {'+ASM1/REDO':
 At this point in time the type support just the creation and the removal of a diskgroup. Modification of diskgroups is not (yet) supported.
 
 
-###oracle_exec
+###ora_exec
 
-this type allows you run a specific SQL statement or an sql file on a specified instance.
+this type allows you run a specific SQL statement or an sql file on a specified instance sid.
 
 ```puppet
-  oracle_exec{"instance/drop table application_users":
+  ora_exec{"drop table application_users@sid":
     username => 'app_user',
     password => 'password,'
   }
@@ -236,7 +236,7 @@ This statement will execute the sql statement `drop table application_users` on 
 
 
 ```puppet
-oracle_exec{"instance/@/tmp/do_some_stuff.sql":
+ora_exec{"instance/@/tmp/do_some_stuff.sql":
   username  => 'app_user',
   password  => 'password,'
   logoutput => on_failure,  # can be true, false or on_failure
@@ -249,18 +249,18 @@ When you don't specify the username and the password, the type will connect as `
 
 
 
-###oracle_thread
+###ora_thread
 
 This type allows you to enable a thread. Threads are used in Oracle RAC installations. This type might not be very useful for regular use, but it is used in the [Oracle RAC module](https://forge.puppetlabs.com/hajee/ora_rac).
 
 
 ```puppet
-oracle_thread{"instance_name/2":
+ora_thread{"2@sid":
   ensure  => 'enabled',
 }
 ```
 
-This enables thread 2 on instance named `instance_name`
+This enables thread 2 on instance named `sid`
 
 ##Limitations
 

@@ -183,8 +183,8 @@ module EasyType
       # rubocop:enable LineLength
 
       #
-      # Prefetch all information of the specified resource. Because we already have everything in the inatnces
-      # array, we just have to set the provider
+      # Prefetch all information of the specified resource. Because we already have everything in the instances
+      # array, we just have to set the provider. 
       #
       # @return [Array] of Puppet Resources
       #

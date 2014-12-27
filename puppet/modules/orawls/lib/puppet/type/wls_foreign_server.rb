@@ -53,6 +53,5 @@ module Puppet
     add_title_attributes(:jmsmodule, :foreign_server_name) do
       /^((.*\/)?(.*):(.*)?)$/
     end
-
   end
 end

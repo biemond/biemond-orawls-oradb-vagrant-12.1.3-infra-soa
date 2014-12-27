@@ -30,8 +30,16 @@ You can use `easy_type` to create your custom type scaffold.
 
 ```sh
 $ cd robert-test_module
-$ puppet type scaffold my_type
+$ puppet type scaffold easy_type my_type --force
 ```
+
+This command creates a scaffold for you. The first parameter `easy_type` specfies the type of custom type you are creating. At this point in time `easy_type` supports:
+
+- easy_type
+- regular_type
+
+The `--force` creates any directories required en overwrites any existing files. We use it in this example because the `lib/puppet` directory is not yet created.
+
 #Add a property
 A custom type without a property is not very useful. So we need to create a property:
 

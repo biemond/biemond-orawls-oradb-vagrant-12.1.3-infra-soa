@@ -1,9 +1,9 @@
 /modules/
-
 /.tmp/
-
 /.vagrant/
-
 pkg
-
 /spec/fixtures/
+log
+junit
+spec/software
+software

@@ -21,6 +21,18 @@ module OraUtils
 		  values
 		end
 
+		def valid_sid?(sid)
+			sids.include?(sid)
+		end
+
+		def valid_asm_sid?(sid)
+			asm_sids.include?(sid)
+		end
+
+		def valid_database_sid(sid)
+			database_sids.include?(sid)
+		end
+
 	  def sids
 	    entries.collect{|i| i[:sid]}
 	  end

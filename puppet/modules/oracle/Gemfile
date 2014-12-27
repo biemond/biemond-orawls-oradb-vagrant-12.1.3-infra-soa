@@ -2,7 +2,7 @@ source "http://rubygems.org"
 
 group :test do
   gem "rake"
-  gem "puppet", ENV['PUPPET_VERSION'] || '~> 3.4.0'
+  gem "puppet", ENV['PUPPET_VERSION'] || '~> 3.6.0'
   gem "puppet-lint"
   gem "rspec-puppet" , :git => 'https://github.com/doc75/rspec-puppet.git', :branch => 'update-to-rspec3'
   gem "puppet-syntax"
@@ -11,6 +11,7 @@ group :test do
 end
 
 group :development do
+  gem 'byebug'
   gem 'debugger'
   gem 'pry'
   gem 'pry-debugger'

@@ -1,6 +1,26 @@
 History
 ========
 
+28-10-2014  version 0.13.3
+--------------------------
+- Small fixes in the generated templates
+
+28-10-2014  version 0.13.2
+--------------------------
+- Small fixes in the generator
+- Small fixes in the command_builder
+
+
+07-10-2014  version 0.13.1
+--------------------------
+- Added support for using -%> in erb templates.
+- Moved to metadata.json
+
+01-09-2014  version 0.13.0
+--------------------------
+Added support for specifying a second option parameter on a command_builder. This is needed to support the Oracle SID's
+
+
 01-09-2014  version 0.13.0
 --------------------------
 Added support for specifying a second option parameter on a command_builder. This is needed to support the Oracle SID's
