@@ -405,22 +405,30 @@ Oracle net
 
 Listener
 
-    oradb::listener{'stop listener':
-      oracleBase   => '/oracle',
-      oracleHome   => '/oracle/product/11.2/db',
-      user         => 'oracle',
-      group        => 'dba',
-      action       => 'stop',
-      require      => Oradb::Net['config net8'],
+    db_listener{ 'startlistener':
+      ensure          => 'running',  # running|start|abort|stop
+      oracle_base_dir => '/oracle',
+      oracle_home_dir => '/oracle/product/11.2/db',
+      os_user         => 'oracle',
     }
 
+    # subscribe to changes
+    db_listener{ 'startlistener':
+      ensure          => 'running',  # running|start|abort|stop
+      oracle_base_dir => '/oracle',
+      oracle_home_dir => '/oracle/product/11.2/db',
+      os_user         => 'oracle',
+      refreshonly     => true,
+      subscribe       => XXXXX,
+    }
+
+    # the old way which also calls db_listener type
     oradb::listener{'start listener':
+      action       => 'start',  # running|start|abort|stop
       oracleBase   => '/oracle',
       oracleHome   => '/oracle/product/11.2/db',
       user         => 'oracle',
       group        => 'dba',
-      action       => 'start',
-      require      => Oradb::Listener['stop listener'],
     }
 
 Database instance
@@ -460,10 +468,11 @@ you can also use a comma separated string for initParams
 
 or based on your own template
 
-Add your template to the template dir of the oradb module, the template must be have the following extension dbt.erb like dbtemplate_12.1.dbt.erb
-Click here for an [12.1 db instance template example](https://github.com/biemond/biemond-oradb/blob/master/templates/dbtemplate_12.1.dbt.erb)
-Click here for an [11.2 db asm instance template example](https://github.com/biemond/biemond-oradb/blob/master/templates/dbtemplate_11gR2_asm.dbt.erb)
+The template must be have the following extension dbt.erb like dbtemplate_12.1.dbt.erb, use puppetDownloadMntPoint parameter for the template location or add your template to the template dir of the oradb module
+- Click here for an [12.1 db instance template example](https://github.com/biemond/biemond-oradb/blob/master/templates/dbtemplate_12.1.dbt.erb)
+- Click here for an [11.2 db asm instance template example](https://github.com/biemond/biemond-oradb/blob/master/templates/dbtemplate_11gR2_asm.dbt.erb)
 
+with a template of the oradb module
 
     oradb::database{ 'testDb_Create':
       oracleBase              => '/oracle',
@@ -471,7 +480,7 @@ Click here for an [11.2 db asm instance template example](https://github.com/bie
       version                 => '12.1',
       user                    => 'oracle',
       group                   => 'dba',
-      template                => 'dbtemplate_12.1', #  this will use dbtemplate_12.1.dbt.erb example template
+      template                => 'dbtemplate_12.1', # or dbtemplate_11gR2_asm, this will use dbtemplate_12.1.dbt.erb example template
       downloadDir             => '/install',
       action                  => 'create',
       dbName                  => 'test',
@@ -487,6 +496,12 @@ Click here for an [11.2 db asm instance template example](https://github.com/bie
       memoryTotal             => "800",
       require                 => Oradb::Listener['start listener'],
     }
+
+or your own template on your own location
+
+      template                => 'my_dbtemplate_11gR2_asm',
+      puppetDownloadMntPoint  => '/vagrant', # 'oradb' etc
+
 
 12c container and pluggable databases
 
@@ -787,16 +802,16 @@ Tnsnames.ora
       }
 
       oradb::opatchupgrade{'112000_opatch_upgrade_asm':
-          oracleHome             => hiera('grid_home_dir'),
-          patchFile              => 'p6880880_112000_Linux-x86-64.zip',
-          csiNumber              => undef,
-          supportId              => undef,
-          opversion              => '11.2.0.3.6',
-          user                   => hiera('grid_os_user'),
-          group                  => 'oinstall',
-          downloadDir            => hiera('oracle_download_dir'),
-          puppetDownloadMntPoint => hiera('oracle_source'),
-          require                => Oradb::Installasm['db_linux-x64'],
+        oracleHome             => hiera('grid_home_dir'),
+        patchFile              => 'p6880880_112000_Linux-x86-64.zip',
+        csiNumber              => undef,
+        supportId              => undef,
+        opversion              => '11.2.0.3.6',
+        user                   => hiera('grid_os_user'),
+        group                  => 'oinstall',
+        downloadDir            => hiera('oracle_download_dir'),
+        puppetDownloadMntPoint => hiera('oracle_source'),
+        require                => Oradb::Installasm['db_linux-x64'],
       }
 
       oradb::opatch{'19791420_grid_patch':
@@ -879,6 +894,19 @@ Tnsnames.ora
         puppetDownloadMntPoint => hiera('oracle_source'),
       }
 
+      # with the help of the oracle and easy-type module of Bert Hajee
+      ora_asm_diskgroup{ 'RECO@+ASM':
+        ensure          => 'present',
+        au_size         => '1',
+        compat_asm      => '11.2.0.0.0',
+        compat_rdbms    => '10.1.0.0.0',
+        diskgroup_state => 'MOUNTED',
+        disks           => {'RECO_0000' => {'diskname' => 'RECO_0000', 'path' => '/nfs_client/asm_sda_nfs_b3'},
+                            'RECO_0001' => {'diskname' => 'RECO_0001', 'path' => '/nfs_client/asm_sda_nfs_b4'}},
+        redundancy_type => 'EXTERNAL',
+        require         => Oradb::Opatch['19791420_db_patch_2'],
+      }
+
       # based on a template
       oradb::database{ 'oraDb':
         oracleBase              => hiera('oracle_base_dir'),
@@ -903,9 +931,10 @@ Tnsnames.ora
         storageType             => "ASM",
         asmSnmpPassword         => 'Welcome01',
         asmDiskgroup            => 'DATA',
-        recoveryDiskgroup       => 'DATA',
-        recoveryAreaDestination => 'DATA',
-        require                 => Oradb::Opatch['19791420_db_patch_2'],
+        recoveryDiskgroup       => 'RECO',
+        recoveryAreaDestination => 'RECO',
+        require                 => [Oradb::Opatch['19791420_db_patch_2'],
+                                    Ora_asm_diskgroup['RECO@+ASM'],],
       }
 
       # or not based on a template
@@ -934,8 +963,6 @@ Tnsnames.ora
         recoveryAreaDestination => 'DATA',
         require                 => Oradb::Opatch['19791420_db_patch_2'],
       }
-
-
 
 ## Oracle Database Client
 
