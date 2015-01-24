@@ -10,7 +10,12 @@ realmName  = cmo.getSecurityConfiguration().getDefaultRealm()
 path = getPath(realmName)
 cd(path)
 
-m = ls('AuthenticationProviders',returnMap='true')
+m2 = ls('AuthenticationProviders',returnMap='true')
+m = []
+
+for ap in m2:
+  if 'identityasserter' not in ap.lower():
+    m.append(ap)
 
 f = open("/tmp/wlstScript.out", "w")
 print >>f, "name;authentication_provider_name;control_flag;domain;order"
