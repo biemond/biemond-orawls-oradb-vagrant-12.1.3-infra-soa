@@ -1,5 +1,24 @@
 # Version updates
 
+## 1.0.34
+- autostart fix so it also works for Oracle Linux 5
+- rcu prefix compare check fix ( Uppercase )
+
+## 1.0.33
+- Small Suse fix for the autostart service
+- new installdb attribute cleanup_installfile
+- option to provide the sys username for RCU
+
+## 1.0.32
+- be able to provide a listener name for starting the oracle listener ( manifest and custom type)
+
+## 1.0.31
+- installasm, stand alone parameter in combination with $gridType == 'CRS_SWONLY' used as standalone or in RAC
+- installasm, .profile fix for ORACLE_SID in case gridType = HA_CONFIG -> +ASM or in gridType = CRS_CONFIG -> +ASM1
+
+## 1.0.30
+- Removed Oracle Home under base check for ASM installations, in CRS_CONFIG or CRS_SWONLY this is not right
+
 ## 1.0.29
 - Custom type for oracle db/asm/client/em directory structure instead of using dirtree and some oradb manifests
 

@@ -1,6 +1,7 @@
 # Changes
 
 ## 0.3.4
+- showStatus now uses AdminServer parameter
 
 ## 0.3.3
 - all scripts also works for solaris release 11.1

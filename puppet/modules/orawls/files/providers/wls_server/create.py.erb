@@ -5,18 +5,26 @@ name          = '<%= server_name %>'
 classpath     = '<%= classpath %>'
 arguments     = '''<%= arguments %>'''
 machineName   = '<%= machine %>'
+bea_home      = '<%= bea_home %>'
 
-logFilename                 = '<%= logfilename %>'
-log_http_Filename           = '<%= log_http_filename %>'
-log_http_format             = '<%= log_http_format %>'
-log_http_format_type        = '<%= log_http_format_type %>'
-log_datasource_Filename     = '<%= log_datasource_filename %>'
-log_file_min_size           = '<%= log_file_min_size %>'
-log_filecount               = '<%= log_filecount %>'
-log_rotate_logon_startup    = '<%= log_rotate_logon_startup %>'
-log_rotationtype            = '<%= log_rotationtype %>'
-log_number_of_files_limited = '<%= log_number_of_files_limited %>'
 
+logFilename                      = '<%= logfilename %>'
+log_http_Filename                = '<%= log_http_filename %>'
+log_http_format                  = '<%= log_http_format %>'
+log_http_format_type             = '<%= log_http_format_type %>'
+log_http_file_count              = '<%= log_http_file_count %>'
+log_http_number_of_files_limited = '<%= log_http_number_of_files_limited %>'
+
+log_datasource_Filename       = '<%= log_datasource_filename %>'
+log_file_min_size             = '<%= log_file_min_size %>'
+log_filecount                 = '<%= log_filecount %>'
+log_rotate_logon_startup      = '<%= log_rotate_logon_startup %>'
+log_rotationtype              = '<%= log_rotationtype %>'
+log_number_of_files_limited   = '<%= log_number_of_files_limited %>'
+log_redirect_stderr_to_server = '<%= log_redirect_stderr_to_server %>'
+log_redirect_stdout_to_server = '<%= log_redirect_stdout_to_server %>'
+
+restart_max   = '<%= restart_max %>'
 listenAddress = '<%= listenaddress %>'
 listenPort    = '<%= listenport %>'
 sslEnabled    = '<%= sslenabled %>'
@@ -25,6 +33,8 @@ two_way_ssl = '<%= two_way_ssl %>'
 client_certificate_enforced = '<%= client_certificate_enforced %>'
 sslListenPort = '<%= ssllistenport %>'
 
+
+logintimeout  = '<%= logintimeout %>'
 jsseenabled   = '<%= jsseenabled %>'
 tunnelingenabled  = '<%= tunnelingenabled %>'
 
@@ -38,6 +48,7 @@ trust_keystore_passphrase              = '<%= trust_keystore_passphrase %>'
 
 default_file_store                     = '<%= default_file_store %>'
 max_message_size                       = '<%= max_message_size %>'
+weblogic_plugin_enabled                = '<%= weblogic_plugin_enabled %>'
 
 edit()
 startEdit()
@@ -83,17 +94,29 @@ try:
     if listenPort:
       set('ListenPort', int(listenPort))
 
+    if logintimeout:
+      set('LoginTimeoutMillis', int(logintimeout))
+
     if max_message_size:
       set('MaxMessageSize',max_message_size)
 
+    if restart_max:
+      set('RestartMax',restart_max)
+
     if classpath:
       set('ServerStart/'+name+'/ClassPath', classpath)
+
+    if bea_home:
+      set('ServerStart/'+name+'/BeaHome', bea_home)
 
     if arguments:
       set('ServerStart/'+name+'/Arguments', arguments)
 
     if tunnelingenabled:
       set('TunnelingEnabled', formatBoolean(tunnelingenabled))
+
+    if weblogic_plugin_enabled:
+      set('WeblogicPluginEnabled', formatBoolean(weblogic_plugin_enabled))
 
     if custom_identity == '1':
       set('KeyStores'                                ,'CustomIdentityAndCustomTrust')
@@ -136,10 +159,25 @@ try:
     if log_file_min_size:
       cmo.setFileMinSize(int(log_file_min_size))
 
+    if log_redirect_stderr_to_server == '1':
+      cmo.setRedirectStderrToServerLogEnabled(true)
+    else:
+      cmo.setRedirectStderrToServerLogEnabled(false)
+
+    if log_redirect_stdout_to_server == '1':
+      cmo.setRedirectStdoutToServerLogEnabled(true)
+    else:
+      cmo.setRedirectStdoutToServerLogEnabled(false)
+
+
     print "web server log: " + name
     cd('/Servers/'+name+'/WebServer/'+name+'/WebServerLog/'+name)
+    if log_http_number_of_files_limited:
+      cmo.setNumberOfFilesLimited(int(log_http_number_of_files_limited))
+    if log_http_file_count:
+      cmo.setFileCount(int(log_http_file_count))
     if log_http_Filename:
-      set('FileName', log_http_Filename)
+      cmo.setFileName(log_http_Filename)
     if log_rotationtype:
       cmo.setRotationType(log_rotationtype)
     if log_rotate_logon_startup:
@@ -154,6 +192,8 @@ try:
       cmo.setLogFileFormat(log_http_format_type)
     if log_http_format:
       cmo.setELFFields(log_http_format)
+
+
 
     print "datasource server log: " + name
     cd('/Servers/'+name+'/DataSource/'+name+'/DataSourceLogFile/'+name)

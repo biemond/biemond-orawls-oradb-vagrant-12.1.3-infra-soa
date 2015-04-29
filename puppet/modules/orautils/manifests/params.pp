@@ -24,49 +24,49 @@ class orautils::params
     default         => 'web',
   }
 
-  $osLogFolder = $::hostname ? { 
-    default    => '/data/logs', 
+  $osLogFolder = $::hostname ? {
+    default    => '/data/logs',
   }
 
 
-  $osDownloadFolder = $::hostname ? { 
+  $osDownloadFolder = $::hostname ? {
     default    => '/data/install',
   }
 
-  $shell        = $::operatingsystem ? { 
+  $shell        = $::operatingsystem ? {
     'Solaris' => '/usr/bin/ksh',
     default   => '/bin/sh',
   }
 
-  $osMdwHome     = $::hostname ?  { 
+  $osMdwHome     = $::hostname ?  {
     wls12           => "${osOracleHome}/Middleware12c",
     default         => "${osOracleHome}/Middleware11gR1",
   }
 
-  $osWlHome     = $::hostname ?  { 
+  $osWlHome     = $::hostname ?  {
     wls12           => "${osOracleHome}/Middleware12c/wlserver",
     default         => "${osOracleHome}/Middleware11gR1/wlserver_10.3",
   }
 
-  $oraUser      = $::hostname ? { 
+  $oraUser      = $::hostname ? {
     default => 'oracle',
   }
 
-  $oraGroup     = $::hostname ? { 
+  $oraGroup     = $::hostname ? {
     default => 'dba',
   }
 
-  $userHome     = $::operatingsystem ? { 
+  $userHome     = $::operatingsystem ? {
     'Solaris' => '/export/home',
     default   => '/home',
   }
 
-  $oraInstHome  = $::operatingsystem ? { 
+  $oraInstHome  = $::operatingsystem ? {
     'Solaris' => '/var/opt',
     default   => '/etc',
   }
 
-  $osDomain     = $::hostname ? {   
+  $osDomain     = $::hostname ? {
     wls12           => 'Wls12c',
     oimapp          => 'oimDomain',
     default         => 'osbSoaDomain',

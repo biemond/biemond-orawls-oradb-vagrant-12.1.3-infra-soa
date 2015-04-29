@@ -78,6 +78,7 @@ Dependency with
 - [wls_server](#wls_server)
 - [wls_server_channel](#wls_server_channel)
 - [wls_cluster](#wls_cluster)
+- [wls_singleton_service](#wls_singleton_service)
 - [wls_coherence_cluster](#wls_coherence_cluster)
 - [wls_server_template](#wls_server_template)
 - [wls_dynamic_cluster](#wls_dynamic_cluster)
@@ -102,6 +103,8 @@ Dependency with
 - [wls_foreign_server_object](#wls_foreign_server_object)
 - [wls_mail_session](#wls_mail_session)
 - [wls_multi_datasource](#wls_multi_datasource)
+- [wls_jms_bridge_destination](#wls_jms_bridge_destination)
+- [wls_messaging_bridge](#wls_messaging_bridge)
 
 ## Domain creation options (Dev or Prod mode)
 
@@ -109,11 +112,11 @@ all templates creates a WebLogic domain, logs the domain creation output
 
 - domain 'standard'    -> a default WebLogic
 - domain 'adf'         -> JRF + EM + Coherence (12.1.2 & 12.1.3) + OWSM (12.1.2 & 12.1.3) + JAX-WS Advanced + Soap over JMS (12.1.2 & 12.1.3)
-- domain 'osb'         -> OSB + JRF + EM + OWSM
-- domain 'osb_soa'     -> OSB + SOA Suite + BAM + JRF + EM + OWSM
-- domain 'osb_soa_bpm' -> OSB + SOA Suite + BAM + BPM + JRF + EM + OWSM
-- domain 'soa'         -> SOA Suite + BAM + JRF + EM + OWSM
-- domain 'soa_bpm'     -> SOA Suite + BAM + BPM + JRF + EM + OWSM
+- domain 'osb'         -> OSB + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
+- domain 'osb_soa'     -> OSB + SOA Suite + BAM + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
+- domain 'osb_soa_bpm' -> OSB + SOA Suite + BAM + BPM + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
+- domain 'soa'         -> SOA Suite + BAM + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
+- domain 'soa_bpm'     -> SOA Suite + BAM + BPM + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
 - domain 'wc_wcc_bpm'  -> WC (webcenter) + WCC ( Content ) + BPM + JRF + EM + OWSM
 - domain 'wc'          -> WC (webcenter) + JRF + EM + OWSM
 - domain 'oim'         -> OIM (Oracle Identity Manager) + OAM ( Oracle Access Manager)
@@ -885,6 +888,7 @@ FMW 11g, 12.1.2 , 12.1.3 ADF domain with webtier
          repository_database_url:  "jdbc:oracle:thin:@wlsdb.example.com:1521/wlsrepos.example.com"
          repository_prefix:        "DEV"
          repository_password:      "Welcome01"
+         repository_sys_user:      "sys"
          repository_sys_password:  "Welcome01"
          rcu_database_url:         "wlsdb.example.com:1521:wlsrepos.example.com"
          webtier_enabled:          true
@@ -913,6 +917,7 @@ FMW 11g WebLogic OIM / OAM domain
         repository_database_url:  "jdbc:oracle:thin:@oimdb.example.com:1521/oimrepos.example.com"
         repository_prefix:        "DEV"
         repository_password:      "Welcome01"
+        repository_sys_user:      "sys"
         repository_sys_password:  "Welcome01"
         rcu_database_url:         "oimdb.example.com:1521/oimrepos.example.com"
 
@@ -932,6 +937,7 @@ FMW 12.1.3 WebLogic SOA Suite domain
         repository_database_url:  "jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com"
         repository_prefix:        "DEV"
         repository_password:      "Welcome01"
+        repository_sys_user:      "sys"
         repository_sys_password:  "Welcome01"
         rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
 
@@ -947,6 +953,7 @@ FMW 12.1.3 WebLogic OSB domain
          repository_database_url:  "jdbc:oracle:thin:@osbdb.example.com:1521/osbrepos.example.com"
          repository_prefix:        "DEV"
          repository_password:      "Welcome01"
+         repository_sys_user:      "sys"
          repository_sys_password:  "Welcome01"
          rcu_database_url:         "osbdb.example.com:1521:osbrepos.example.com"
 
@@ -1365,6 +1372,14 @@ or when you set the defaults hiera variables
         adapter_entry:             'eis/DB/hr'
         adapter_entry_property:    'xADataSourceName'
         adapter_entry_value:       'jdbc/hrDS'
+      'FTPAdapter_hr':
+        adapter_name:              'FtpAdapter'
+        adapter_path:              "/opt/oracle/middleware11g/Oracle_SOA1/soa/connectors/FtpAdapter.rar"
+        adapter_plan_dir:          "/opt/oracle/wlsdomains"
+        adapter_plan:              'Plan_FTP.xml'
+        adapter_entry:             'eis/FTP/xx'
+        adapter_entry_property:    'FtpAbsolutePathBegin;FtpPathSeparator;Host;ListParserKey;Password;ServerType;UseFtps;Username;UseSftp'
+        adapter_entry_value:       '/BDDC;/;l2-ibrfongen02.nl.rsg;UNIX;;unix;false;kim;false'
 
 
 ### fmwcluster
@@ -1401,6 +1416,7 @@ hiera configuration
         soa_cluster_name:     "SoaCluster"
         bam_cluster_name:     "BamCluster"
         osb_cluster_name:     "OsbCluster"
+        ess_cluster_name:     "EssCluster" # optional else ESS will be added to the soa cluster
         log_output:           *logoutput
         bpm_enabled:          true
         bam_enabled:          true
@@ -1526,6 +1542,10 @@ Global timeout parameter for WebLogic resource types. use timeout and value in s
 ###wls_setting
 
 required for all the weblogic type/providers, this is a pointer to an WebLogic AdminServer.
+
+For suppressing the passwords in the puppet log output you can set the loglevel to debug, this way it will only show up when you set puppet agent or apply loglevel to debug and off course when the wls_setting is created or updated. in other cases you won't see a thing in the output.
+
+in hiera loglevel: 'debug' or loglevel => 'debug'
 
     wls_setting { 'default':
       user               => 'oracle',
@@ -1753,47 +1773,42 @@ or use puppet resource wls_deployment
     wls_deployment { 'jersey-bundle':
       ensure            => 'present',
       deploymenttype    => 'Library',
-      target            => ['AdminServer','WebCluster'],
-      targettype        => ['Server','Cluster'],
+      stagingmode       => 'nostage',
+      remote            => "1",
+      upload            => "1",
+      target            => ['AdminServer', 'WebCluster'],
+      targettype        => ['Server', 'Cluster'],
       versionidentifier => '1.18@1.18.0.0',
-      localpath         =>  '/vagrant/jersey-bundle-1.18.war',
-      timeout           => 60,
     }
-    # this will use default as wls_setting identifier
+
     wls_deployment { 'webapp':
       ensure            => 'present',
       deploymenttype    => 'AppDeployment',
-      target            => ['WebCluster'],
-      targettype        => ['Cluster'],
-      localpath         => '/vagrant/webapp.war',
-      timeout           => 60,
-    }
-
-or add a version
-
-    # this will use default as wls_setting identifier
-    wls_deployment { 'webapp':
-      ensure            => 'present',
-      deploymenttype    => 'AppDeployment',
+      stagingmode       => 'nostage',
+      remote            => "1",
+      upload            => "1",
       target            => ['WebCluster'],
       targettype        => ['Cluster'],
       versionidentifier => '1.1@1.1.0.0',
-      localpath         => '/vagrant/webapp.war',
+      require           => Wls_deployment['jersey-bundle']
     }
 
 
 in hiera
 
     $default_params = {}
-    $deployment_instances = hiera('deployment_library_instances', $default_params)
+    $deployment_instances = hiera('deployment_instances', $default_params)
     create_resources('wls_deployment',$deployment_instances, $default_params)
 
-    # this will use default as wls_setting identifier
-    deployment_library_instances:
+    deployment_instances:
       'jersey-bundle':
         ensure:            'present'
         deploymenttype:    'Library'
         versionidentifier: '1.18@1.18.0.0'
+        timeout:           60
+        stagingmode:       "nostage"
+        remote:            "1"
+        upload:            "1"
         target:
           - 'AdminServer'
           - 'WebCluster'
@@ -1801,24 +1816,24 @@ in hiera
           - 'Server'
           - 'Cluster'
         localpath:         '/vagrant/jersey-bundle-1.18.war'
-
-    $default_params = {}
-    $deployment_instances = hiera('deployment_application_instances', $default_params)
-    create_resources('wls_deployment',$deployment_instances, $default_params)
-
-    # this will use default as wls_setting identifier
-    deployment_application_instances:
+        require:
+           - Wls_cluster[WebCluster]
       'webapp':
         ensure:            'present'
         deploymenttype:    'AppDeployment'
         versionidentifier: '1.1@1.1.0.0'
+        timeout:           60
+        stagingmode:       "nostage"
+        remote:            "1"
+        upload:            "1"
         target:
-          - 'AdminServer'
           - 'WebCluster'
         targettype:
-          - 'Server'
           - 'Cluster'
         localpath:         '/vagrant/webapp.war'
+        require:
+           - Wls_deployment[jersey-bundle]
+           - Wls_cluster[WebCluster]
 
 
 ### wls_user
@@ -2104,6 +2119,12 @@ or with log parameters, default file store and ssl
       log_http_filename                 => 'logs/access.log',
       log_http_format                   => 'date time cs-method cs-uri sc-status',
       log_http_format_type              => 'common',
+      log_http_file_count               => '10',
+      log_http_number_of_files_limited  => '0',
+      log_redirect_stderr_to_server     => '0',
+      log_redirect_stdout_to_server     => '0',
+      logintimeout                      => '5000',
+      restart_max                       => '2',
       machine                           => 'Node2',
       sslenabled                        => '1',
       sslhostnameverificationignored    => '1',
@@ -2112,7 +2133,10 @@ or with log parameters, default file store and ssl
       client_certificate_enforced       => '0',
       default_file_store                => '/path/to/default_file_store/',
       max_message_size                  => '25000000',
+      weblogic_plugin_enabled           => '1',
     }
+
+
 
 or with JSSE with custom identity and trust
 
@@ -2181,6 +2205,12 @@ or with log parameters
         log_rotationtype:                      'bySize'
         log_datasource_filename:               'logs/datasource.log'
         log_http_filename:                     'logs/access.log'
+        log_http_file_count:                   '10'
+        log_http_number_of_files_limited:      '0'
+        log_redirect_stderr_to_server:         '0'
+        log_redirect_stdout_to_server:         '0'
+        logintimeout:                          '5000'
+        restart_max:                           '2'
         machine:                               'Node1'
         sslenabled:                            '1'
         ssllistenport:                         '8201'
@@ -2289,9 +2319,11 @@ or use puppet resource wls_server_channel
       enabled          => '1',
       httpenabled      => '1',
       listenport       => '8003',
+      publicport       => '8103',
       outboundenabled  => '0',
       protocol         => 'cluster-broadcast',
       tunnelingenabled => '0',
+      max_message_size => '25000000',
     }
 
 in hiera
@@ -2313,9 +2345,11 @@ in hiera
         enabled:          '1'
         httpenabled:      '1'
         listenport:       '8003'
+        publicport:       '8103'
         outboundenabled:  '0'
         protocol:         'cluster-broadcast'
         tunnelingenabled: '0'
+        max_message_size: '25000000'
 
 
 ### wls_cluster
@@ -2358,6 +2392,40 @@ in hiera
         servers:
           - 'wlsServer1'
           - 'wlsServer2'
+
+### wls_singleton_service
+
+it needs wls_setting and when identifier is not provided it will use the 'default'.
+
+or use puppet resource wls_singleton_service
+
+    # this will use default as wls_setting identifier
+    wls_singleton_service { 'SingletonService':
+        ensure                           => 'present',
+        cluster                          => 'ClusterName',
+        user_preferred_server            => 'PreferredServerName',
+        class_name                       => 'com.example.package.SingletonServiceImpl',
+        constrained_candidate_servers    => ['PreferredServerName', 'OtherServerName'],
+        additional_migration_attempts    => 2,
+        millis_to_sleep_between_attempts => 300000,
+        notes                            => 'This is a singleton service that prefers to run on PreferredServerName, but can be migrated to OtherServerName.',
+    }
+
+in hiera
+
+    # this will use default as wls_setting identifier
+    singleton_service_instances:
+      'SingletonService':
+        ensure:                            'present'
+        cluster:                           'ClusterName'
+        user_preferred_server:             'PreferredServerName'
+        class_name:                        'com.example.package.SingletonServiceImpl'
+        constrained_candidate_servers:
+          - 'PreferredServerName'
+          - 'OtherServerName'
+        additional_migration_attempts:     2
+        millis_to_sleep_between_attempts:  300000
+        notes:                             'This is a singleton service that prefers to run on PreferredServerName, but can be migrated to OtherServerName.'
 
 ### wls_coherence_cluster
 
@@ -2448,11 +2516,12 @@ it needs wls_setting and when identifier is not provided it will use the 'defaul
 or use puppet resource wls_dynamic_cluster
 
     wls_dynamic_cluster { 'DynamicCluster':
-      ensure               => 'present',
-      maximum_server_count => '2',
-      nodemanager_match    => 'Node1,Node2',
-      server_name_prefix   => 'DynCluster-',
-      server_template_name => 'ServerTemplateWeb',
+      ensure                 => 'present',
+      calculated_listen_port => '0',  # '0' or '1'
+      maximum_server_count   => '2',
+      nodemanager_match      => 'Node1,Node2',
+      server_name_prefix     => 'DynCluster-',
+      server_template_name   => 'ServerTemplateWeb',
     }
 
 in hiera
@@ -2463,11 +2532,12 @@ in hiera
 
     dynamic_cluster_instances:
       'DynamicCluster':
-        ensure:               'present'
-        maximum_server_count: '2'
-        nodemanager_match:    'Node1,Node2'
-        server_name_prefix:   'DynCluster-'
-        server_template_name: 'ServerTemplateWeb'
+        ensure:                 'present'
+        calculated_listen_port: '0'        # '0' or '1'
+        maximum_server_count:   '2'
+        nodemanager_match:      'Node1,Node2'
+        server_name_prefix:     'DynCluster-'
+        server_template_name:   'ServerTemplateWeb'
 
 ### wls_virtual_host
 
@@ -2694,54 +2764,6 @@ in hiera
             servicetype:         'Both'
 
 
-### wls_jmsserver
-
-it needs wls_setting and when identifier is not provided it will use the 'default'.
-
-or use puppet resource wls_jmsserver
-
-    # this will use default as wls_setting identifier
-    wls_jmsserver { 'jmsServer1':
-      ensure              => 'present',
-      persistentstore     => 'jmsFile1',
-      persistentstoretype => 'FileStore',
-      target              => ['wlsServer1'],
-      targettype          => ['Server'],
-    }
-    # this will use default as wls_setting identifier
-    wls_jmsserver { 'jmsServer2':
-      ensure     => 'present',
-      target     => ['wlsServer2'],
-      targettype => ['Server'],
-    }
-    # this will use default as wls_setting identifier
-    wls_jmsserver { 'jmsServer3':
-      ensure     => 'present',
-      target     => ['wlsServer3'],
-      targettype => ['Server'],
-    }
-
-
-in hiera
-
-    # this will use default as wls_setting identifier
-    jmsserver_instances:
-       jmsServer1:
-         ensure:              'present'
-         target:
-           - 'wlsServer1'
-         targettype:
-           - 'Server'
-         persistentstore:     'jmsFile1'
-         persistentstoretype: 'FileStore'
-       jmsServer2:
-         ensure:              'present'
-         target:
-           - 'wlsServer2'
-         targettype:
-           - 'Server'
-
-
 ### wls_datasource
 
 it needs wls_setting and when identifier is not provided it will use the 'default'.
@@ -2752,21 +2774,27 @@ or use puppet resource wls_datasource
 
     # this will use default as wls_setting identifier
     wls_datasource { 'hrDS':
-      ensure                     => 'present',
-      drivername                 => 'oracle.jdbc.xa.client.OracleXADataSource',
-      extraproperties            => ['SendStreamAsBlob=true','oracle.net.CONNECT_TIMEOUT=10000'],
-      globaltransactionsprotocol => 'TwoPhaseCommit',
-      initialcapacity            => '1',
-      jndinames                  => ['jdbc/hrDS'],
-      maxcapacity                => '15',
-      target                     => ['WebCluster','WebCluster2'],
-      targettype                 => ['Cluster','Cluster'],
-      testtablename              => 'SQL SELECT 1 FROM DUAL',
-      url                        => 'jdbc:oracle:thin:@dbagent2.alfa.local:1521/test.oracle.com',
-      user                       => 'hr',
-      password                   => 'pass',
-      usexa                      => '1',
-      xaproperties:              => 'XaSetTransactionTimeout=1,XaRetryIntervalSeconds=300',
+      ensure                           => 'present',
+      drivername                       => 'oracle.jdbc.xa.client.OracleXADataSource',
+      extraproperties                  => ['SendStreamAsBlob=true','oracle.net.CONNECT_TIMEOUT=10000'],
+      globaltransactionsprotocol       => 'TwoPhaseCommit',
+      initialcapacity                  => '1',
+      jndinames                        => ['jdbc/hrDS'],
+      maxcapacity                      => '15',
+      mincapacity                      => '1',
+      statementcachesize               => '10',
+      testconnectionsonreserve         => '0',
+      target                           => ['WebCluster','WebCluster2'],
+      targettype                       => ['Cluster','Cluster'],
+      testtablename                    => 'SQL SELECT 1 FROM DUAL',
+      url                              => 'jdbc:oracle:thin:@dbagent2.alfa.local:1521/test.oracle.com',
+      user                             => 'hr',
+      password                         => 'pass',
+      usexa                            => '1',
+      xaproperties:                    => 'XaSetTransactionTimeout=1,XaRetryIntervalSeconds=300',
+      connectioncreationretryfrequency => '0',
+      secondstotrustidlepoolconnection => '10',
+      testfrequency                    => '120',
     }
     # this will use default as wls_setting identifier
     wls_datasource { 'jmsDS':
@@ -2776,6 +2804,9 @@ or use puppet resource wls_datasource
       initialcapacity            => '1',
       jndinames                  => ['jmsDS'],
       maxcapacity                => '15',
+      mincapacity                => '1',
+      statementcachesize         => '10',
+      testconnectionsonreserve   => '0',
       target                     => ['WebCluster'],
       targettype                 => ['Cluster'],
       testtablename              => 'SQL SELECT 1',
@@ -2794,28 +2825,34 @@ in hiera
     # this will use default as wls_setting identifier
     datasource_instances:
         'hrDS':
-          ensure:                      'present'
-          drivername:                  'oracle.jdbc.xa.client.OracleXADataSource'
+          ensure:                           'present'
+          drivername:                       'oracle.jdbc.xa.client.OracleXADataSource'
           extraproperties:
             - 'SendStreamAsBlob=true'
             - 'oracle.net.CONNECT_TIMEOUT=1000'
           globaltransactionsprotocol:  'TwoPhaseCommit'
-          initialcapacity:             '1'
+          initialcapacity:                  '1'
+          maxcapacity:                      '15'
+          mincapacity:                      '1'
+          statementcachesize:               '10'
           jndinames:
            - 'jdbc/hrDS'
-          maxcapacity:                 '15'
           target:
             - 'WebCluster'
             - 'WebCluster2'
           targettype:
             - 'Cluster'
             - 'Cluster'
-          testtablename:               'SQL SELECT 1 FROM DUAL'
-          url:                         "jdbc:oracle:thin:@dbagent2.alfa.local:1521/test.oracle.com"
-          user:                        'hr'
-          password:                    'pass'
-          usexa:                       '1'
-          xaproperties:                'XaSetTransactionTimeout=1,XaRetryIntervalSeconds=300'
+          testtablename:                    'SQL SELECT 1 FROM DUAL'
+          url:                              "jdbc:oracle:thin:@dbagent2.alfa.local:1521/test.oracle.com"
+          user:                             'hr'
+          password:                         'pass'
+          usexa:                            '1'
+          xaproperties:                     'XaSetTransactionTimeout=1,XaRetryIntervalSeconds=300'
+          testconnectionsonreserve:         '0'
+          secondstotrustidlepoolconnection: '10'
+          testfrequency:                    '120'
+          connectioncreationretryfrequency: '0'
         'jmsDS':
           ensure:                      'present'
           drivername:                  'com.mysql.jdbc.Driver'
@@ -2836,6 +2873,57 @@ in hiera
           # To Optionally Configure as Gridlink Datasource
           fanenabled:                  '1'
           onsnodelist:                 '10.10.10.110:6200,10.10.10.111:6200'
+
+### wls_jmsserver
+
+it needs wls_setting and when identifier is not provided it will use the 'default'.
+
+or use puppet resource wls_jmsserver
+
+    # this will use default as wls_setting identifier
+    wls_jmsserver { 'jmsServer1':
+      ensure                      => 'present',
+      persistentstore             => 'jmsFile1',
+      persistentstoretype         => 'FileStore',
+      target                      => ['wlsServer1'],
+      targettype                  => ['Server'],
+      allows_persistent_downgrade => '0',
+      bytes_maximum               => '-1',
+    }
+    # this will use default as wls_setting identifier
+    wls_jmsserver { 'jmsServer2':
+      ensure     => 'present',
+      target     => ['wlsServer2'],
+      targettype => ['Server'],
+    }
+    # this will use default as wls_setting identifier
+    wls_jmsserver { 'jmsServer3':
+      ensure     => 'present',
+      target     => ['wlsServer3'],
+      targettype => ['Server'],
+    }
+
+
+in hiera
+
+    # this will use default as wls_setting identifier
+    jmsserver_instances:
+       jmsServer1:
+         ensure:                      'present'
+         target:
+           - 'wlsServer1'
+         targettype:
+           - 'Server'
+         persistentstore:             'jmsFile1'
+         persistentstoretype:         'FileStore'
+         allows_persistent_downgrade: '0'
+         bytes_maximum:               '-1'
+       jmsServer2:
+         ensure:              'present'
+         target:
+           - 'wlsServer2'
+         targettype:
+           - 'Server'
 
 ### wls_jms_module
 
@@ -2939,6 +3027,7 @@ or use puppet resource wls_jms_queue
       ensure           => 'present',
       defaulttargeting => '0',
       distributed      => '1',
+      forwarddelay     => '-1',
       errordestination => 'ErrorQueue',
       expirationpolicy => 'Redirect',
       jndiname         => 'jms/Queue1',
@@ -2979,6 +3068,7 @@ in hiera
        'jmsClusterModule:Queue1':
          ensure:                   'present'
          distributed:              '1'
+         forwarddelay:             '-1'
          errordestination:         'ErrorQueue'
          expirationpolicy:         'Redirect'
          jndiname:                 'jms/Queue1'
@@ -3398,6 +3488,91 @@ in hiera
         algorithmtype: 'Failover'
         datasources:
          - 'myJDBCDatasource'
+        target:
+         - 'ManagedServer1'
+         - 'WebCluster'
+        targettype:
+         - 'Server'
+         - 'Cluster'
+
+### wls_jms_bridge_destination
+
+it needs wls_setting and when identifier is not provided it will use the 'default'
+
+or use puppet resource wls_jms_bridge_destination
+
+Valid jms bridge destinations are found at: https://javamail.java.net/nonav/docs/api/
+
+    wls_jms_bridge_destination { 'myBridgeDest':
+      ensure                => 'present',
+      adapter               => 'eis.jms.WLSConnectionFactoryJNDINoTX',
+      classpath             => 'myClasspath',
+      connectionfactoryjndi => 'myCFJndi',
+      connectionurl         => 'myConnUrl',
+      destinationjndi       => 'myDestJndi',
+      destinationtype       => 'Queue',
+      initialcontextfactory => 'weblogic.jndi.WLInitialContextFactory',
+    }
+
+in hiera
+
+    jms_bridge_destinations:
+      'myBridgeDest':
+        ensure:                  present
+        adapter:                'eis.jms.WLSConnectionFactoryJNDINoTX',
+        classpath:              'myClasspath',
+        connectionfactoryjndi:  'myCFJndi',
+        connectionurl:          'myConnUrl',
+        destinationjndi:        'myDestJndi',
+        destinationtype:        'Queue',
+        initialcontextfactory;  'weblogic.jndi.WLInitialContextFactory',
+
+### wls_messaging_bridge
+
+it needs wls_setting and when identifier is not provided it will use the 'default'
+
+or use puppet resource wls_messaging_bridge
+
+Valid messaging bridge properties are found at: https://javamail.java.net/nonav/docs/api/
+
+    wls_messaging_bridge { 'myBrigde':
+      ensure                 => 'present',
+      asyncenabled           => '1',
+      batchinterval          => '-1',
+      batchsize              => '10',
+      durabilityenabled      => '1',
+      idletimemax            => '60',
+      qos                    => 'Exactly-once',
+      reconnectdelayincrease => '5',
+      reconnectdelaymax      => '60',
+      reconnectdelaymin      => '15',
+      selector               => 'sel',
+      transactiontimeout     => '30',
+      sourcedestination      => 'mySourceBrigdeDest',
+      targetdestination      => 'MyDestBridgeDest',
+      target                 => ['ManagedServer1', 'WebCluster'],
+      targettype             => ['Server', 'Cluster'],
+}
+
+
+in hiera
+
+    messaging_bridges:
+      'myBridge':
+        ensure:                 present
+        asyncenabled:           '1'
+        batchinterval:          '-1',
+        batchsize:              '10',
+        durabilityenabled:      '1',
+        idletimemax:            '60',
+        qos:                    'Exactly-once',
+        reconnectdelayincrease: '5',
+        reconnectdelaymax:      '60',
+        reconnectdelaymin::     '15',
+        selector:               'sel',
+        transactiontimeout:     '30',
+        sourcedestination:      'mySourceBrigdeDest',
+        targetdestination:      'MyDestBridgeDest',
         target:
          - 'ManagedServer1'
          - 'WebCluster'

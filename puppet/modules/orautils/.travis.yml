@@ -8,7 +8,7 @@ before_install:
 script:
   - bundle exec rspec spec
   - bundle exec rake syntax
-  - bundle exec rake lint --trace
+  - bundle exec rake lint
 notifications:
   email:
     - biemond@gmail.com

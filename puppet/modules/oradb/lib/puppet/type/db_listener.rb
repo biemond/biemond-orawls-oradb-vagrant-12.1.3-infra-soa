@@ -63,6 +63,14 @@ module Puppet
       defaultto 'oracle'
     end
 
+    newparam(:listener_name) do
+      desc <<-EOT
+        Listener name.
+      EOT
+
+      defaultto 'listener'
+    end
+
     newparam(:refreshonly) do
       desc <<-EOT
         The command should only be run as a

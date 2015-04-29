@@ -22,6 +22,8 @@ node 'soa.example.com' {
   Class[java] -> Class[orawls::weblogic] -> Class[oradb_12c]
 }
 
+Package{allow_virtual => false,}
+
 # operating settings for Middleware
 class os {
 
@@ -336,6 +338,10 @@ class fmw_config {
 
   $fmw_jrf_cluster_instances = hiera('fmw_jrf_cluster_instances', $default_params)
   create_resources('orawls::utils::fmwclusterjrf',$fmw_jrf_cluster_instances, $default_params)
+
+  $resource_adapter_instances = hiera('resource_adapter_instances', {})
+  create_resources('orawls::resourceadapter',$resource_adapter_instances, $default_params)
+
 
   $fmwlogdir_instances = hiera('fmwlogdir_instances', {})
   create_resources('orawls::fmwlogdir',$fmwlogdir_instances, $default_params)

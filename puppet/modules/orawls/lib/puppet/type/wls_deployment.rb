@@ -49,6 +49,9 @@ module Puppet
     property :targettype
     property :deploymenttype
     property :versionidentifier
+    parameter :remote
+    parameter :upload
+    property :stagingmode
 
     add_title_attributes(:deployment_name) do
       /^((.*\/)?(.*)?)$/

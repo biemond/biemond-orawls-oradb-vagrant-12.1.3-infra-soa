@@ -5,6 +5,7 @@ define oradb::installasm(
   $version                 = undef,
   $file                    = undef,
   $gridType                = 'HA_CONFIG', #CRS_CONFIG|HA_CONFIG|UPGRADE|CRS_SWONLY
+  $stand_alone             = true, # in case of 'CRS_SWONLY' and used as stand alone or in RAC
   $gridBase                = undef,
   $gridHome                = undef,
   $oraInventoryDir         = undef,
@@ -59,11 +60,6 @@ define oradb::installasm(
 
   if ( $gridBase == undef or is_string($gridBase) == false) {fail('You must specify an gridBase') }
   if ( $gridHome == undef or is_string($gridHome) == false) {fail('You must specify an gridHome') }
-
-  if ( $gridBase in $gridHome == false ){
-    fail('gridHome folder should be under the gridBase folder')
-  }
-
 
   # check if the oracle software already exists
   $found = oracle_exists( $gridHome )
@@ -265,15 +261,17 @@ define oradb::installasm(
     }
 
     if ( $gridType == 'CRS_SWONLY' ) {
-      exec { 'Configuring Grid Infrastructure for a Stand-Alone Server':
-        command   => "${gridHome}/perl/bin/perl -I${gridHome}/perl/lib -I${gridHome}/crs/install ${gridHome}/crs/install/roothas.pl",
-        user      => 'root',
-        group     => 'root',
-        path      => $execPath,
-        cwd       => $gridBase,
-        logoutput => true,
-        require   => [Exec["run root.sh grid script ${title}"],
-                      File[$gridHome],],
+      if ( $stand_alone == true ) {
+        exec { 'Configuring Grid Infrastructure for a Stand-Alone Server':
+          command   => "${gridHome}/perl/bin/perl -I${gridHome}/perl/lib -I${gridHome}/crs/install ${gridHome}/crs/install/roothas.pl",
+          user      => 'root',
+          group     => 'root',
+          path      => $execPath,
+          cwd       => $gridBase,
+          logoutput => true,
+          require   => [Exec["run root.sh grid script ${title}"],
+                        File[$gridHome],],
+        }
       }
     } else {
       file { "${downloadDir}/cfgrsp.properties":

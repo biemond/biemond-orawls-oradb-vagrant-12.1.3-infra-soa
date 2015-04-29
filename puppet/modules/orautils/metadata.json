@@ -1,13 +1,24 @@
 {
   "name": "biemond-orautils",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "summary": "Oracle WebLogic utilities scripts",
   "author": "Edwin Biemond",
-  "dependencies": [],
+  "dependencies": [
+
+  ],
   "source": "https://github.com/biemond/biemond-orautils",
   "project_page": "https://github.com/biemond/biemond-orautils",
-  "license": "Apache 2.0",
-  "tags": ["weblogic", "java", "oracle","fmw", "middleware", "fusion","osb", "soa"],
+  "license": "Apache-2.0",
+  "tags": [
+    "weblogic",
+    "java",
+    "oracle",
+    "fmw",
+    "middleware",
+    "fusion",
+    "osb",
+    "soa"
+  ],
   "operatingsystem_support": [
     {
       "operatingsystem": "RedHat",
