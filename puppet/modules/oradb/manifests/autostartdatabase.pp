@@ -3,11 +3,15 @@
 #  autostart of the nodemanager for linux
 #
 define oradb::autostartdatabase(
-  $oracleHome  = undef,
-  $dbName      = undef,
-  $user        = 'oracle',
+  $oracle_home  = undef,
+  $db_name      = undef,
+  $user         = 'oracle',
 ){
-  include oradb::prepareautostart
+
+  class { 'oradb::prepareautostart':
+    oracle_home => $oracle_home,
+    user        => $user,
+  }
 
   $execPath    = '/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:'
 
@@ -27,9 +31,9 @@ define oradb::autostartdatabase(
     }
   }
 
-  exec { "set dbora ${dbName}:${oracleHome}":
+  exec { "set dbora ${db_name}:${oracle_home}":
     command   => $sedCommand,
-    unless    => "/bin/grep '^${dbName}:${oracleHome}:Y' ${oraTab}",
+    unless    => "/bin/grep '^${db_name}:${oracle_home}:Y' ${oraTab}",
     require   => File["${dboraLocation}/dbora"],
     path      => $execPath,
     logoutput => true,

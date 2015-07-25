@@ -56,10 +56,12 @@ module Puppet
     property :timetodeliver
     property :timetolive
     property :forwarddelay
+    property :templatename
 
     add_title_attributes(:jmsmodule, :queue_name) do
       /^((.*\/)?(.*):(.*)?)$/
     end
 
+    autorequire(:wls_jms_template) { "#{jmsmodule}:#{templatename}" }
   end
 end

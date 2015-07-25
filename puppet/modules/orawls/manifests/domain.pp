@@ -18,6 +18,7 @@ define orawls::domain (
   $adminserver_name                      = hiera('domain_adminserver'            , 'AdminServer'),
   $adminserver_address                   = hiera('domain_adminserver_address'    , undef),
   $adminserver_port                      = hiera('domain_adminserver_port'       , 7001),
+  $adminserver_ssl_port                  = undef,
   $adminserver_listen_on_all_interfaces  = false,  # for docker etc
   $java_arguments                        = hiera('domain_java_arguments'         , {}),         # java_arguments = { "ADM" => "...", "OSB" => "...", "SOA" => "...", "BAM" => "..."}
   $nodemanager_address                   = undef,
@@ -628,30 +629,6 @@ define orawls::domain (
         require => Exec["execwlst ${domain_name} extension ${title}"],
         path    => $exec_path,
         user    => $os_user,
-        group   => $os_group,
-      }
-    }
-
-    $nodeMgrHome = "${domain_dir}/nodemanager"
-
-    # set our 12.1.2 nodemanager properties
-    if ($version == 1212 or $version == 1213) {
-
-      # If we are using an extension template make sure we depend on that or our properties will get overwritten
-      if($extensionsTemplateFile) {
-        $dependsExtension = "execwlst ${domain_name} extension ${title}"
-      } else {
-        $dependsExtension = "execwlst ${domain_name} ${title}"
-      }
-
-      file { "nodemanager.properties ux ${version} ${title}":
-        ensure  => present,
-        path    => "${nodeMgrHome}/nodemanager.properties",
-        replace => true,
-        content => template("orawls/nodemgr/nodemanager.properties_${version}.erb"),
-        require => Exec[$dependsExtension],
-        mode    => '0775',
-        owner   => $os_user,
         group   => $os_group,
       }
     }
